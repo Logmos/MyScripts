@@ -1,0 +1,2 @@
+option(USE_CHECK_API "Check unsafe APIs" OFF)
+option(USE_CLANG_FORMAT "Clang-format files" OFF)
