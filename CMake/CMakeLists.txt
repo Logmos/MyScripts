@@ -14,19 +14,8 @@ if(USE_CHECK_API)
         EXCLUDE_FROM_DEFAULT_BUILD True
         )
 
-    if(EXISTS "${CMAKE_SOURCE_DIR}/tools/checkAPIs.pl")
-        EXECUTE_PROCESS(COMMAND test -x ${CMAKE_SOURCE_DIR}/tools/checkAPIs.pl
-            RESULT_VARIABLE checkAPI_permission)
-        IF(checkAPI_permission)
-            MESSAGE(STATUS "No execute permissions on checkAPIs.pl, please add executale permission...")
-            # file(COPY ${CMAKE_SOURCE_DIR}/tools/checkAPIs.pl
-            #     DESTINATION ${CMAKE_SOURCE_DIR}/tools
-            #     #PERMISSIONS OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE OWNER_READ GROUP_READ WORLD_READ
-            #     FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
-        ENDIF()
-    else()
+    if(NOT EXISTS "${CMAKE_SOURCE_DIR}/3rdparty/checkAPIs.pl")
         # include(ExternalProject)
-
         # ExternalProject_Add(
         #     WireSharkCheckAPI
         #     URL https://raw.githubusercontent.com/wireshark/wireshark/master/tools/checkAPIs.pl
@@ -42,8 +31,8 @@ if(USE_CHECK_API)
             WireSharkCheckAPI
             URL https://raw.githubusercontent.com/wireshark/wireshark/master/tools/checkAPIs.pl
             DOWNLOAD_NO_EXTRACT TRUE
-            DOWNLOAD_DIR        ${CMAKE_SOURCE_DIR}/tools
-            # DOWNLOAD_NAME       jsoncpp_1.8.4.tar.gz
+            DOWNLOAD_DIR        ${CMAKE_SOURCE_DIR}/3rdparty
+            # DOWNLOAD_NAME     checkAPIs.pl
             )
         FetchContent_GetProperties(googletest)
         if(NOT wiresharkcheckapi_POPULATED)
@@ -52,15 +41,33 @@ if(USE_CHECK_API)
             #create gt build directory in binary tree
             #add_subdirectory(${googletest_SOURCE_DIR} gt)
         endif()
-
-        # file (COPY sourcefile DESTINATION
-        #     ${CMAKE_SOURCE_DIR}/tools/checkAPIs.pl)
-        file(COPY ${CMAKE_SOURCE_DIR}/tools/checkAPIs.pl
-            DESTINATION ${CMAKE_SOURCE_DIR}/tools/checkAPIs.pl
-            FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
     endif()
 
+    file(COPY ${CMAKE_SOURCE_DIR}/3rdparty/checkAPIs.pl
+        DESTINATION ${CMAKE_SOURCE_DIR}/tools
+        FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+    file(SIZE ${CMAKE_SOURCE_DIR}/tools/checkAPIs.pl FileSize)
+    if (FileSize EQUAL 0)
+        message(FATAL_ERROR "${CMAKE_SOURCE_DIR}/tools/checkAPIs.pl is empty, maybe downloading failed!!!")
+    endif()
+    EXECUTE_PROCESS(COMMAND test -x ${CMAKE_SOURCE_DIR}/tools/checkAPIs.pl
+        RESULT_VARIABLE checkAPI_permission)
+    # if(checkAPI_permission)
+    #     MESSAGE(STATUS "No execute permissions on checkAPIs.pl, please add executale permission...")
+    # endif()
+
     include(UseCheckAPI)
+endif()
+
+if(USE_CLANG_FORMAT)
+    add_custom_target(clangFormat)
+    set_target_properties(clangFormat
+        PROPERTIES
+        FOLDER "Auxiliary"
+        EXCLUDE_FROM_ALL True
+        EXCLUDE_FROM_DEFAULT_BUILD True
+        )
+    include(UseClangFormat)
 endif()
 
 set(ALL_SRCS test.cc)
@@ -75,5 +82,18 @@ if(USE_CHECK_API)
         )
 endif()
 
+if(USE_CLANG_FORMAT)
+    CLANGFORMAT(
+        NAME
+        test
+        SWITCHES
+        -style=LLVM
+        -i
+        SOURCES
+        ${ALL_SRCS}
+        )
+endif()
+
 add_executable(test ${ALL_SRCS})
 add_dependencies(test checkAPI)
+add_dependencies(test clangFormat)
