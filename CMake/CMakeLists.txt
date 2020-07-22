@@ -70,6 +70,17 @@ if(USE_CLANG_FORMAT)
     include(UseClangFormat)
 endif()
 
+if(USE_CLANG_TIDY)
+    add_custom_target(clangTidy)
+    set_target_properties(clangTidy
+        PROPERTIES
+        FOLDER "Auxiliary"
+        EXCLUDE_FROM_ALL True
+        EXCLUDE_FROM_DEFAULT_BUILD True
+        )
+    include(UseClangTidy)
+endif()
+
 set(ALL_SRCS test.cc)
 if(USE_CHECK_API)
     CHECKAPI(
@@ -94,6 +105,23 @@ if(USE_CLANG_FORMAT)
         )
 endif()
 
+if(USE_CLANG_TIDY)
+    CLANGTIDY(
+        NAME
+        test
+        SWITCHES
+        --checks="modernize-use-nullptr,modernize-deprecated-headers,modernize-loop-convert"
+        --warnings-as-errors="modernize-use-nullptr,modernize-deprecated-headers,modernize-loop-convert"
+        --header-filter='.*'
+        --system-headers
+        --export-fixes=clang-tidy-fixes.yml
+        #--fix
+        SOURCES
+        ${ALL_SRCS}
+        )
+endif()
+
 add_executable(test ${ALL_SRCS})
 add_dependencies(test checkAPI)
 add_dependencies(test clangFormat)
+add_dependencies(test clangTidy)

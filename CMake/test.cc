@@ -1,9 +1,12 @@
-#include <cstdio>
+#include <stdio.h>
 
-int main()
-{
-    char StrArray[32] = {0};
-    sprintf(StrArray, "%s", "Hello World");
-    printf("This is just a test\n");
-    return 0;
+int main() {
+  int *pInt = NULL;
+  char StrArray[32] = {0};
+  // Trigger checkAPIs.pl validation failure
+  sprintf(StrArray, "%s", "Hello World");
+  for (int i = 0; i < 8; i++)
+    printf("%d\n", i);
+  printf("This is just a test\n");
+  return 0;
 }
