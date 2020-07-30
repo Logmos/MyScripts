@@ -71,14 +71,18 @@ if(USE_CLANG_FORMAT)
 endif()
 
 if(USE_CLANG_TIDY)
-    add_custom_target(clangTidy)
-    set_target_properties(clangTidy
-        PROPERTIES
-        FOLDER "Auxiliary"
-        EXCLUDE_FROM_ALL True
-        EXCLUDE_FROM_DEFAULT_BUILD True
-        )
-    include(UseClangTidy)
+    if(NOT EXISTS "${CMAKE_SOURCE_DIR}/build/compile_commands.json")
+        unset(USE_CLANG_TIDY)
+    else()
+        add_custom_target(clangTidy)
+        set_target_properties(clangTidy
+            PROPERTIES
+            FOLDER "Auxiliary"
+            EXCLUDE_FROM_ALL True
+            EXCLUDE_FROM_DEFAULT_BUILD True
+            )
+        include(UseClangTidy)
+    endif()
 endif()
 
 set(ALL_SRCS test.cc)
@@ -113,7 +117,7 @@ if(USE_CLANG_TIDY)
         --checks="modernize-use-nullptr,modernize-deprecated-headers,modernize-loop-convert"
         --warnings-as-errors="modernize-use-nullptr,modernize-deprecated-headers,modernize-loop-convert"
         --header-filter='.*'
-        --system-headers
+        #--system-headers
         --export-fixes=clang-tidy-fixes.yml
         #--fix
         SOURCES
@@ -122,6 +126,12 @@ if(USE_CLANG_TIDY)
 endif()
 
 add_executable(test ${ALL_SRCS})
+if(USE_CHECK_API)
 add_dependencies(test checkAPI)
+endif()
+if(USE_CLANG_FORMAT)
 add_dependencies(test clangFormat)
+endif()
+if(USE_CLANG_TIDY)
 add_dependencies(test clangTidy)
+endif()

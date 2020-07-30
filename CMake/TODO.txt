@@ -1,2 +1,0 @@
-由于clang-tidy依赖于cmake输出的compile_commands.json
-因此第一遍应该先检查compile_commands.json的存在性来确定clang-tidy的启动与否
