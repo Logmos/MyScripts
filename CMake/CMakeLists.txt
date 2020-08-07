@@ -70,6 +70,10 @@ if(USE_CLANG_FORMAT)
     include(UseClangFormat)
 endif()
 
+#cmake已经集成clang-tidy
+#https://ortogonal.github.io/cmake-clang-tidy/
+#This is convenient enough
+#set(CMAKE_CXX_CLANG_TIDY "clang-tidy;--checks=*;--warnings-as-errors=*")
 if(USE_CLANG_TIDY)
     if(NOT EXISTS "${CMAKE_SOURCE_DIR}/build/compile_commands.json")
         unset(USE_CLANG_TIDY)
